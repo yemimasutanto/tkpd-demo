@@ -1,0 +1,36 @@
+FROM golang:alpine
+
+# set env Timezone data
+ENV TZ=Asia/Jakarta
+
+## dependencies packages
+RUN apk add --no-cache --virtual .build-deps --no-progress -q \
+    gcc \
+    g++ \
+    sqlite-dev \
+    musl-dev \
+    tzdata
+
+## dev tools
+RUN apk add --no-cache --virtual .dev-tools --no-progress -q \
+    curl \
+    git \
+    vim
+
+## set TZDATA
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+## add project to workspace
+ADD . $GOPATH/src/github.com/tobapramudia/tkpd-demo
+
+## set base path
+WORKDIR $GOPATH/src/github.com/tobapramudia/tkpd-demo
+
+## get dependencies library
+RUN go get -v
+
+## reset workspace
+WORKDIR $GOPATH
+
+## optional, remove the project
+ONBUILD RUN rm -rf $GOPATH/src/github.com/tobapramudia
